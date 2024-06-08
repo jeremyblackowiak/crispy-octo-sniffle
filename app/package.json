@@ -1,0 +1,15 @@
+{
+    "name": "jeremy-speciall-app",
+    "version": "0.0.1",
+    "description": "",
+    "main": "app.js",
+    "scripts": {
+      "test": "echo \"NO!\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "express": "^4.17.1"
+    }
+  }
