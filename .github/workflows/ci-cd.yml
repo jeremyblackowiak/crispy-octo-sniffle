@@ -1,0 +1,36 @@
+# name: CI/CD
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Build Docker image
+#       run: docker build -t my-app:latest ./app
+
+#     - name: Push Docker image
+#       run: |
+#         docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#         docker tag my-app:latest ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+#         docker push ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+
+#     - name: Set up kubectl
+#       run: |
+#         # Set up kubectl...
+
+#     - name: Apply Kubernetes deployment and service
+#       run: |
+#         kubectl apply -f k8s/deployment.yaml
+#         kubectl apply -f k8s/service.yaml
+
+#     - name: Update Route53 and TLS
+#       run: |
+#         # Update Route53 and TLS...
