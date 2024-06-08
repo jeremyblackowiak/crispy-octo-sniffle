@@ -8,31 +8,31 @@
 
 # // user for externalDNS
 
-# data "aws_eks_cluster" "cluster" {
-#   name = module.eks.cluster_id
-# }
+data "aws_eks_cluster" "cluster" {
+  name = module.eks.cluster_id
+}
 
-# data "aws_eks_cluster_auth" "cluster" {
-#   name = module.eks.cluster_id
-# }
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_id
+}
 
-# provider "helm" {
-#   kubernetes {
-#     host                   = data.aws_eks_cluster.cluster.endpoint
-#     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-#     exec {
-#       api_version = "client.authentication.k8s.io/v1beta1"
-#       args        = ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.cluster.name]
-#       command     = "aws"
-#     }
-#   }
-# }
+provider "helm" {
+  kubernetes {
+    host                   = data.aws_eks_cluster.cluster.endpoint
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      args        = ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.cluster.name]
+      command     = "aws"
+    }
+  }
+}
 
-# provider "kubernetes" {
-#   host                   = data.aws_eks_cluster.cluster.endpoint
-#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-#   token                 = data.aws_eks_cluster_auth.cluster.token
-# }
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+  token                 = data.aws_eks_cluster_auth.cluster.token
+}
 
 # resource "kubernetes_deployment" "my_app" {
 #   metadata {
@@ -64,34 +64,61 @@
 #   }
 # }
 
-# resource "kubernetes_namespace" "aws_lb_controller" {
-#   metadata {
-#     name = "kube-system"
-#   }
+# data "helm_repository" "eks" {
+#   name = "eks"
+#   url  = "https://aws.github.io/eks-charts"
 # }
 
-# resource "helm_release" "aws_lb_controller" {
-#   name       = "aws-load-balancer-controller"
-#   namespace  = kubernetes_namespace.aws_lb_controller.metadata[0].name
-#   repository = data.helm_repository.eks.metadata[0].name
-#   chart      = "aws-load-balancer-controller"
-#   version    = "1.2.3"  # replace with the version you want to install
+module "aws_load_balancer_controller_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.3.1"
 
-#   set {
-#     name  = "clusterName"
-#     value = module.eks.cluster_name  # replace with your cluster name
-#   }
+  role_name = "aws-load-balancer-controller"
 
-#   set {
-#     name  = "serviceAccount.create"
-#     value = "false"
-#   }
+  attach_load_balancer_controller_policy = true
 
-#   set {
-#     name  = "serviceAccount.name"
-#     value = "aws-load-balancer-controller"
-#   }
-# }
+  oidc_providers = {
+    ex = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
+    }
+  }
+}
+
+resource "kubernetes_namespace" "aws_lb_controller" {
+  metadata {
+    name = "kube-system"
+  }
+}
+
+resource "helm_release" "aws_load_balancer_controller" {
+  name = "aws-load-balancer-controller"
+
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  version    = "1.4.4"
+
+  set {
+    name  = "replicaCount"
+    value = 1
+  }
+
+  set {
+    name  = "clusterName"
+    value = module.eks.cluster_id
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = "aws-load-balancer-controller"
+  }
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = module.aws_load_balancer_controller_irsa_role.iam_role_arn
+  }
+}
 
 # resource "kubernetes_service" "example" {
 #   metadata {
