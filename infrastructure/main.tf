@@ -43,10 +43,12 @@ module "vpc" {
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
+    "type" = "public"
   }
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
+    "type" = "internal"
   }
 
   intra_subnet_tags = {
@@ -54,16 +56,6 @@ module "vpc" {
   }
 
   tags = local.tags
-}
-
-output "private_subnets" {
-  description = "The private subnets"
-  value       = module.vpc.private_subnets
-}
-
-output "intra_subnets" {
-  description = "The private subnets"
-  value       = module.vpc.intra_subnets
 }
 
 resource "aws_iam_role" "eks-cluster" {
@@ -121,39 +113,32 @@ resource "aws_iam_role_policy_attachment" "example-AmazonEKSFargatePodExecutionR
 #   }
 # }
 
-# data "subnet_ids" "private" {
-#   vpc_id = module.vpc.vpc_id
-#   tags = {
-#     "kubernetes.io/role/internal-elb" = "1"
-#   }  
-# }
+data "aws_subnets" "private" {
+  filter {
+    name = "vpc-id"
+    values = [module.vpc.vpc_id]
+  }
 
-# data "subnet_ids" "intra" {
-#   vpc_id = module.vpc.vpc_id
-#   tags = {
-#     "kubernetes.io/role/internal-elb" = "1"
-#   }  
-# }
-
-# output "private_subnet_ids" {
-#   description = "The private subnet IDs"
-#   value       = data.subnet_ids.private.ids
-  
-# }
-
-data "aws_subnet" "private" {
-  for_each = toset(module.vpc.private_subnets)
-  id = each.value
+  tags = {
+    "kubernetes.io/role/internal-elb" = 1
+  }
 }
 
-output "private_subnet_ids" {
-  description = "The private subnet IDs"
-  value       = [for subnet in data.aws_subnet.private : subnet.id]
+data "aws_subnets" "intra" {
+  filter {
+    name = "vpc-id"
+    values = [module.vpc.vpc_id]
+  }
+
+  tags = {
+    "type" = "intra"
+  }
 }
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
+  depends_on = [ module.vpc, data.aws_subnets.private, data.aws_subnets.intra ]
   cluster_name    = local.cluster_name
   cluster_version = "1.29"
 
@@ -179,8 +164,10 @@ module "eks" {
   }
 
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = ["subnet-047cfc38be1b76239", "subnet-0b58727fa8ad9ff47", "subnet-08dfff2c0a7400641"]
-  control_plane_subnet_ids = ["subnet-05ef8cbb5d3603a3e", "subnet-05707e443a05c42f5", "subnet-05a74ebfc6655bd7d"]
+  # subnet_ids = ["subnet-047cfc38be1b76239", "subnet-0b58727fa8ad9ff47", "subnet-08dfff2c0a7400641"]
+  # control_plane_subnet_ids = ["subnet-05ef8cbb5d3603a3e", "subnet-05707e443a05c42f5", "subnet-05a74ebfc6655bd7d"]
+  subnet_ids = toset(data.aws_subnets.private.ids)
+  control_plane_subnet_ids = toset(data.aws_subnets.intra.ids)
 
   create_cluster_security_group = false
   create_node_security_group    = false
@@ -210,7 +197,8 @@ module "eks" {
       ]
 
       # Using specific subnets instead of the subnets supplied for the cluster itself
-      subnet_ids = [module.vpc.private_subnets[1]]
+      # subnet_ids = [module.vpc.private_subnets[1]]
+      subnet_ids = [data.aws_subnets.private.ids[1]]
 
       tags = {
         Owner = "secondary"
