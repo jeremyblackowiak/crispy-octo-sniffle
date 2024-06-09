@@ -143,23 +143,22 @@ module "eks" {
   cluster_version = "1.29"
 
   cluster_endpoint_public_access           = true
+  cluster_endpoint_private_access = true
   enable_cluster_creator_admin_permissions = true
 
-  cluster_addons = {
-    coredns = {
-      most_recent = true
-      configuration_values = jsonencode({
-        computeType = "fargate"
-      })
-    }
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
-    }
-    aws-ebs-csi-driver = {
-      service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+  enable_irsa = true
+
+  eks_managed_node_group_defaults = {
+    disk_size = 20
+  }
+
+  eks_managed_node_groups = {
+    nodes = {
+      min_size     = 1
+      max_size     = 1
+      desired_size = 1
+
+      instance_types = ["t3.micro"]
     }
   }
 
@@ -169,47 +168,47 @@ module "eks" {
   subnet_ids = toset(data.aws_subnets.private.ids)
   control_plane_subnet_ids = toset(data.aws_subnets.intra.ids)
 
-  create_cluster_security_group = false
-  create_node_security_group    = false
+  # create_cluster_security_group = false
+  # create_node_security_group    = false
 
-  fargate_profile_defaults = {
-    iam_role_additional_policies = {
-      additional = aws_iam_policy.additional.arn
-    }
-  }
+  # fargate_profile_defaults = {
+  #   iam_role_additional_policies = {
+  #     additional = aws_iam_policy.additional.arn
+  #   }
+  # }
 
-  fargate_profiles = {
-    example = {
-      name = "example"
-      selectors = [
-        {
-          namespace = "backend"
-          labels = {
-            Application = "backend"
-          }
-        },
-        {
-          namespace = "app-*"
-          labels = {
-            Application = "app-wildcard"
-          }
-        }
-      ]
+  # fargate_profiles = {
+  #   example = {
+  #     name = "example"
+  #     selectors = [
+  #       {
+  #         namespace = "backend"
+  #         labels = {
+  #           Application = "backend"
+  #         }
+  #       },
+  #       {
+  #         namespace = "app-*"
+  #         labels = {
+  #           Application = "app-wildcard"
+  #         }
+  #       }
+  #     ]
 
-      # Using specific subnets instead of the subnets supplied for the cluster itself
-      # subnet_ids = [module.vpc.private_subnets[1]]
-      subnet_ids = [data.aws_subnets.private.ids[1]]
+  #     # Using specific subnets instead of the subnets supplied for the cluster itself
+  #     # subnet_ids = [module.vpc.private_subnets[1]]
+  #     subnet_ids = [data.aws_subnets.private.ids[0]]
 
-      tags = {
-        Owner = "secondary"
-      }
-    }
-    kube-system = {
-      selectors = [
-        { namespace = "kube-system" }
-      ]
-    }
-  }
+  #     tags = {
+  #       Owner = "secondary"
+  #     }
+  #   }
+  #   kube-system = {
+  #     selectors = [
+  #       { namespace = "kube-system" }
+  #     ]
+  #   }
+  # }
 
 }
   # eks_managed_node_group_defaults = {

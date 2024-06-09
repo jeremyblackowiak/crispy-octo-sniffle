@@ -9,65 +9,64 @@
 # // user for externalDNS
 
 data "aws_eks_cluster" "cluster" {
-  name = module.eks.cluster_id
+  name = module.eks.cluster_name
 }
 
 data "aws_eks_cluster_auth" "cluster" {
-  name = module.eks.cluster_id
+  name = module.eks.cluster_name
 }
 
 provider "helm" {
   kubernetes {
-    host                   = data.aws_eks_cluster.cluster.endpoint
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    # cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
     exec {
       api_version = "client.authentication.k8s.io/v1beta1"
-      args        = ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.cluster.name]
+      args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
       command     = "aws"
     }
   }
 }
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   token                 = data.aws_eks_cluster_auth.cluster.token
 }
 
-# resource "kubernetes_deployment" "my_app" {
-#   metadata {
-#     name = "my-app"
-#   }
-#   spec {
-#     replicas = 2
-#     selector {
-#       match_labels = {
-#         app = "my-app"
-#       }
-#     }
-#     template {
-#       metadata {
-#         labels = {
-#           app = "my-app"
-#         }
-#       }
-#       spec {
-#         container {
-#           image = "851725465050.dkr.ecr.us-east-1.amazonaws.com/hello-repository:latest"  # replace with your Docker image
-#           name  = "my-app"
-#           port {
-#             container_port = 3000
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
-
-# data "helm_repository" "eks" {
-#   name = "eks"
-#   url  = "https://aws.github.io/eks-charts"
-# }
+resource "kubernetes_deployment" "my_app" {
+  metadata {
+    name = "my-app"
+    labels = {
+        App = "my-app"
+    }
+  }
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = "my-app"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = "my-app"
+        }
+      }
+      spec {
+        container {
+          image = "851725465050.dkr.ecr.us-east-1.amazonaws.com/hello-repository:latest"  # replace with your Docker image
+          name  = "my-app"
+          port {
+            container_port = 3000
+          }
+        }
+      }
+    }
+  }
+}
 
 module "aws_load_balancer_controller_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
@@ -79,7 +78,7 @@ module "aws_load_balancer_controller_irsa_role" {
 
   oidc_providers = {
     ex = {
-      provider_arn               = module.eks.oidc_provider_arn
+      provider_arn               = module.eks.oidc_provider
       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
     }
   }
@@ -106,7 +105,7 @@ resource "helm_release" "aws_load_balancer_controller" {
 
   set {
     name  = "clusterName"
-    value = module.eks.cluster_id
+    value = module.eks.cluster_name
   }
 
   set {
@@ -120,21 +119,23 @@ resource "helm_release" "aws_load_balancer_controller" {
   }
 }
 
-# resource "kubernetes_service" "example" {
-#   metadata {
-#     name = "example"
-#   }
-#   spec {
-#     selector = {
-#       App = kubernetes_deployment.my_app.metadata[0].labels.App
-#     }
-#     port {
-#       port        = 443
-#       target_port = 3000
-#     }
-#     type = "LoadBalancer"
-#   }
-# }
+resource "kubernetes_service" "example" {
+  metadata {
+    name = "example"
+  }
+  spec {
+    selector = {
+      App = kubernetes_deployment.my_app.metadata[0].labels.App
+    }
+    port {
+      port        = 443
+      target_port = 3000
+    }
+    type = "LoadBalancer"
+  }
+}
+
+
 
 # resource "aws_route53_zone" "main" {
 #   name = "example.com"
