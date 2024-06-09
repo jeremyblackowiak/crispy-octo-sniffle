@@ -8,23 +8,23 @@
 
 # # // user for externalDNS
 
-data "aws_eks_cluster" "cluster" {
-  name = module.eks.cluster_name
-}
+# data "aws_eks_cluster" "cluster" {
+#   name = module.eks.cluster_name
+# }
 
 # data "aws_eks_cluster_auth" "cluster" {
 #   name = module.eks.cluster_name
 # }
 
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.data)
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    args        = ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.cluster.id]
-    command     = "aws"
-  }
-}
+# provider "kubernetes" {
+#   host                   = data.aws_eks_cluster.cluster.endpoint
+#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.data)
+#   exec {
+#     api_version = "client.authentication.k8s.io/v1beta1"
+#     args        = ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.cluster.id]
+#     command     = "aws"
+#   }
+# }
 
 # provider "helm" {
 #   kubernetes {
@@ -38,7 +38,7 @@ provider "kubernetes" {
 #   }
 # }
 
-# module "lb_role" {
+# module "aws_load_balancer_controller_irsa_role" {
 #   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 #   version = "5.3.1"
 
@@ -48,7 +48,7 @@ provider "kubernetes" {
 
 #   oidc_providers = {
 #     ex = {
-#       provider_arn               = module.eks.oidc_provider_arn
+#       provider_arn               = "${module.eks.oidc_provider}"
 #       namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
 #     }
 #   }
@@ -84,7 +84,7 @@ provider "kubernetes" {
 
 #   set {
 #     name  = "clusterName"
-#     value = module.eks.cluster_name
+#     value = data.aws_eks_cluster.cluster.id
 #   }
 
 #   set {
@@ -92,10 +92,10 @@ provider "kubernetes" {
 #     value = "aws-load-balancer-controller"
 #   }
 
-# #   set {
-# #     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-# #     value = "arn:aws:iam::851725465050:role/eksctl-test-eks-kcI8s9D2-addon-iamserviceacco-Role1-aZ87V5pN1lDq"
-# #   }
+#   set {
+#     name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+#     value = module.aws_load_balancer_controller_irsa_role.iam_role_arn
+#   }
 # }
 
 # resource "kubernetes_deployment" "my_app" {
@@ -120,13 +120,11 @@ provider "kubernetes" {
 #       }
 #       spec {
 #         container {
-#           image = "registry.k8s.io/e2e-test-images/agnhost:2.39"  # replace with your Docker image
-#           name  = "hello-node"
+#           image = "851725465050.dkr.ecr.us-east-1.amazonaws.com/hello-repository:latest"  # replace with your Docker image
+#           name  = "my-app"
 #           port {
 #             container_port = 80
 #           }
-#           command = [ "/agnhost" ]
-#           args = [ "netexec" ]
 #         }
 #       }
 #     }
