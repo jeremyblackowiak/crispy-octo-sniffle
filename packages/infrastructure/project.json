@@ -4,6 +4,7 @@
       "terraform-init": {
         "executor": "nx:run-commands",
         "options": {
+          "cwd": "packages/infrastructure",
           "commands": [
             "terraform init"
           ]
@@ -18,8 +19,9 @@
       "terraform-apply": {
         "executor": "nx:run-commands",
         "options": {
+          "cwd": "packages/infrastructure",
           "commands": [
-            "terraform apply"
+            "terraform apply {args.auto-approve}"
           ]
         },
         "dependsOn": [
@@ -32,6 +34,7 @@
       "build-infra": {
         "executor": "nx:run-commands",
         "options": {
+          "cwd": "packages/infrastructure",
           "commands": [
             "echo 'Infrastructure Deployed!'"
           ]
@@ -39,6 +42,24 @@
         "dependsOn": [
           {
             "target": "terraform-apply",
+            "projects": "self"
+          }
+        ]
+      },
+      "build-infra-ci": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "packages/infrastructure",
+          "commands": [
+            "echo 'Infrastructure Deployed!'"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "terraform-apply",
+            "args": {
+              "auto-approve": "-auto-approve"
+            },
             "projects": "self"
           }
         ]

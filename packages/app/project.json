@@ -7,8 +7,7 @@
         "options": {
           "cwd": "packages/app",
           "commands": [
-            "export AWS_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)",
-            "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com"
+            "export AWS_ACCOUNT=$(aws sts get-caller-identity --query Account --output text) && aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com"
           ]
         }
       },
@@ -21,7 +20,7 @@
           ]
         }
       },
-      "build-docker": {
+      "build": {
         "executor": "nx:run-commands",
         "options": {
           "cwd": "packages/app",
@@ -47,7 +46,11 @@
         },
         "dependsOn": [
           {
-            "target": "prepare-for-build",
+            "target": "build",
+            "projects": "self"
+          },
+          {
+            "target": "docker-login",
             "projects": "self"
           }
         ]
