@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/certificate-arn: { OutputArn }
+    external-dns.alpha.kubernetes.io/hostname: { app.myZone }
+  name: my-app
+spec:
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          service:
+            name: my-app
+            port:
+              number: 80
+        pathType: Prefix

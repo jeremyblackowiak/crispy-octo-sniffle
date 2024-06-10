@@ -7,6 +7,10 @@ Welcome to `${EXAMPLE_PIPELINE}`!
 Follow these steps to set up the project for the first time:
 
 0. Create an S3 Bucket for State
+00. Create myZone 
+You'll need Docker
+
+Create a prereqs section
 
 1. **Clone the repository**
 
