@@ -34,20 +34,21 @@ what i'd do with more time: something else for manifests, stuff from notes, depl
 
 ## First Time Setup, Metadata and Infrastructure
 
+### Basic Setup
 
 1. **Clone the repository**
 
    Use your preferred method to clone the repository to your local machine.
 2. Run `asdf install`.
 2. Update [the terraform.tf backend configuration](./packages/infrastructure/terraform.tf#L6) to use your S3 bucket.
-3. Update [the aws_route53_zone data block](./packages/infrastructure/ingress.tf#L101) and the [externalDNS hostname configuration](./packages/manifests/ingress.yaml#L7) and the [ci-cd workflow](./.github/workflows/ci-cd.yml#L42) the  to use your Route53 zone.
+3. Update [the aws_route53_zone data block](./packages/infrastructure/ingress.tf#L101), the [externalDNS hostname configuration](./packages/manifests/ingress.yaml#L7), the [ci-cd workflow](./.github/workflows/ci-cd.yml#L42), and the [readme](./README.md#github-actions-app-deployment) to use your Route53 zone.
 4. Update the [eks_admins_iam_group group_users array](./packages/infrastructure/main.tf#L206) to include your CI user's username, or simply comment out the line if you don't intend to use Github Actions. 
 5. Replace [{ecrRepository}](./packages/app/project.json#L10) with your ECR repository name, and [{ecrRepoURL}](./packages/manifests/deployment.yaml#L17) with the full public URL of the ECR repository. 
 6. Commit and push your changes to the main branch.
-7. If only running locally, go to "Local Execution" section
+7. If only running locally, go to "Local Infrastructure Setup" section.
 
 
-### Github Actions Execution
+### Github Actions Infrastructure Setup
 
 1. Set up the CI user AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY values as Github Actions secrets with the same name.
 2. Run the "Infrastructure Deployment" Github Actions [workflow_dispatch workflow](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow). This will deploy all the infrastructure resources described in the overview, and provide several outputs that you'll use in the next steps. 
@@ -55,7 +56,7 @@ what i'd do with more time: something else for manifests, stuff from notes, depl
 4. Replace [{OutputArn}](./packages/manifests/ingress.yaml#L6) with the ACM certificate arn created in step 3
 5. Commit and push your changes to the main branch.
 
-### Local Execution
+### Local Infrastructure Setup
 
 1. Set up the CI user AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION=us-east-1 values as environment variables of the same names in your terminal session. 
 2. From the root of the repository, run `./nx build-infra infrastructure`. This will install the toolchain, init Terraform, and create a Terraform plan for the infrastructure. Type yes to continue creation. This will deploy all the infrastructure resources described in the overview, and provide several outputs that you'll use in the next steps. 
@@ -67,14 +68,10 @@ what i'd do with more time: something else for manifests, stuff from notes, depl
 
 Follow these steps for regular use of the project:
 
-1. **Ensure the required tools are installed**
+### Github Actions App Deployment
 
-   Run `asdf install` in the terminal to ensure the required tools are installed.
+1. Create a pull request with your updates to the app.
+2. Merge the pull request into the `main` branch.
+3. The CI-CD workflow will build the app container, publish it to ECR, then apply the manifests to the EKS cluster.
+4. Access the app at https://app.{myZone}
 
-2. **Update the cluster**
-
-   Follow your established procedures to update the cluster.
-
-3. **Update the service**
-
-   Follow your established procedures to update the service.

@@ -54,6 +54,25 @@
             "projects": "self"
           }
         ]
+      },
+      "local-deploy": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "packages/app",
+          "commands": [
+            "echo 'deploy attempt complete'"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "publish",
+            "projects": "self"
+          },
+          {
+            "target": "apply-all",
+            "projects": "manifests"
+          }
+        ]
       }
     }
   }
