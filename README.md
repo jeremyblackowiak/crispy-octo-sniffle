@@ -1,8 +1,17 @@
 # Crispy Octo Sniffle
 
-Welcome to `${EXAMPLE_PIPELINE}`!
+Welcome to `pipeline-demo`!
 
 ## First Time Setup
+
+### Prerequisites
+
+- An AWS account
+   - A Route53 zone to use for DNS record creation
+   - An S3 bucket to use for storing Terraform state
+   - Access keys for a "CI" AWS user with wide permissions (#TODO: Add policy needed)
+- A *nix machine with Docker for Desktop or Rancher installed, if running locally
+- Github Actions enabled on the Github repo 
 
 Follow these steps to set up the project for the first time:
 
@@ -14,6 +23,12 @@ Setting AWS keys
 Cluster name needs to be put into manifests commands.
 
 Create a prereqs section
+
+### Github Actions Execution
+
+1. Set up your AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION as Github Actions secrets
+
+### Local Execution
 
 1. **Clone the repository**
 
