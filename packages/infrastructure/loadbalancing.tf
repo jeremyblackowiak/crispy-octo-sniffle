@@ -1,7 +1,9 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
+// This file creates the AWS Load Balancer Controller and External DNS resources
 
+// Called via data because I had trouble referencing values with module.eks
 data "aws_eks_cluster" "cluster" {
   name = module.eks.cluster_name
 }
@@ -28,6 +30,7 @@ provider "helm" {
   }
 }
 
+// This is probably sitting at the center of the "things I am still figuring out" README section
 module "aws_load_balancer_controller_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "5.3.1"

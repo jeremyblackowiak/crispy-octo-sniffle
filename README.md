@@ -1,4 +1,4 @@
-# Crispy Octo Sniffle
+# Pipeline Demo
 
 Welcome to `pipeline-demo`!
 

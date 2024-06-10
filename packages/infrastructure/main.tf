@@ -1,23 +1,19 @@
 # Copyright (c) HashiCorp, Inc.
 # SPDX-License-Identifier: MPL-2.0
 
-provider "aws" {}
+// This file creates the VPC and EKS cluster resources
 
-# Filter out local zones, which are not currently supported 
-# with managed node groups
-data "aws_availability_zones" "available" {}
+provider "aws" {}
 
 locals {
   cluster_name = "test-eks-${random_string.suffix.result}"
 }
 
 locals {
-  name = "jeremy-infra"
-  vpc_cidr = "10.0.0.0/16"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+  name = "jeremy-infra" ## You must use my name
 
   tags = {
-    jeremy = "did-this"
+    jeremy = "did-this" ## And my tag
   }
 }
 
@@ -26,6 +22,7 @@ resource "random_string" "suffix" {
   special = false
 }
 
+// Create a slim VPC with properly tagged subnets for AWS Load Balancer Controller
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
@@ -55,36 +52,14 @@ module "vpc" {
   }
 }
 
-
-data "aws_subnets" "private" {
-  filter {
-    name = "vpc-id"
-    values = [module.vpc.vpc_id]
-  }
-
-  tags = {
-    "kubernetes.io/role/internal-elb" = 1
-  }
-}
-
-# data "aws_subnets" "intra" {
-#   filter {
-#     name = "vpc-id"
-#     values = [module.vpc.vpc_id]
-#   }
-
-#   tags = {
-#     "type" = "intra"
-#   }
-# }
-
+// A too-open SG for testing purposes
 resource "aws_security_group" "eks" {
     name        = "eks sg"
     description = "Allow traffic"
     vpc_id      = module.vpc.vpc_id
 
     ingress {
-      description      = "everything for test"
+      description      = "everything for testing purposes"
       from_port        = 0
       to_port          = 0
       protocol         = "-1"
@@ -105,10 +80,11 @@ resource "aws_security_group" "eks" {
     }
   }
 
+// The EKS cluster
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.0"
-  depends_on = [ module.vpc, data.aws_subnets.private ]
+  depends_on = [ module.vpc ]
   cluster_name    = local.cluster_name
   cluster_version = "1.29"
 
@@ -138,7 +114,7 @@ module "eks" {
 
 }
 
-
+// IAM role policy for EKS admins
 module "allow_eks_access_iam_policy" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
   version = "5.3.1"
@@ -160,6 +136,7 @@ module "allow_eks_access_iam_policy" {
   })
 }
 
+// IAM role for EKS admins
 module "eks_admins_iam_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
   version = "5.3.1"
@@ -175,6 +152,7 @@ module "eks_admins_iam_role" {
   ]
 }
 
+// Associating the piolicy with the role
 module "allow_assume_eks_admins_iam_policy" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-policy"
   version = "5.3.1"
@@ -196,6 +174,7 @@ module "allow_assume_eks_admins_iam_policy" {
   })
 }
 
+// IAM group for EKS admins
 module "eks_admins_iam_group" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-group-with-policies"
   version = "5.3.1"
