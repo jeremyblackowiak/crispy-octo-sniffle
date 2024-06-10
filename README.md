@@ -2,6 +2,12 @@
 
 Welcome to `pipeline-demo`!
 
+## Todos
+
+- Linting
+- Apply manifests with Terraform? 
+- Handle multiple environments, "configs" app directory, etc. 
+
 ## First Time Setup
 
 ### Prerequisites
@@ -24,9 +30,24 @@ Cluster name needs to be put into manifests commands.
 
 Create a prereqs section
 
+## First Time Setup
+
+### Github Actions / Local Shared Steps
+
+1. **Clone the repository**
+
+   Use your preferred method to clone the repository to your local machine.
+2. Update [the terraform.tf backend configuration](./packages/infrastructure/terraform.tf#L6) to use your S3 bucket.
+3. Update [the aws_route53_zone data block](./packages/infrastructure/ingress.tf#L101) to use your Route53 zone.
+4. Update the [eks_admins_iam_group group_users array](./packages/infrastructure/main.tf#L206) to include your CI user's username.
+
+
+
 ### Github Actions Execution
 
-1. Set up your AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION as Github Actions secrets
+1. Commit and push your changes to the main branch.
+2. Set up the CI user AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY values as Github Actions secrets with the same name.
+3. Run the "Infrastructure Deployment" Github Actions [workflow_dispatch workflow](https://docs.github.com/en/actions/using-workflows/manually-running-a-workflow). This will deploy a new VPC, an EKS cluster
 
 ### Local Execution
 

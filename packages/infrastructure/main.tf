@@ -203,6 +203,6 @@ module "eks_admins_iam_group" {
   name                              = "eks-admin"
   attach_iam_self_management_policy = false
   create_group                      = true
-  group_users                       = ["jblackowiak"]
+  group_users                       = ["ciUser"]
   custom_group_policy_arns          = [module.allow_assume_eks_admins_iam_policy.arn]
 }
