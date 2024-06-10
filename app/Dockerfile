@@ -1,7 +1,7 @@
 FROM busybox:latest
 ENV PORT=80
 
-ADD index.html /www/index.html
+ADD src/index.html /www/index.html
 
 EXPOSE $PORT
 

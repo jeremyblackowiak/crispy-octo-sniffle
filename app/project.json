@@ -1,0 +1,42 @@
+{
+    "projectName": "app",
+    "targets": {
+      "docker-login": {
+        "executor": "nx:run-commands",
+        "options": {
+          "account": "851725465050",
+          "commands": [
+            "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com"
+          ]
+        }
+      },
+      "terraform-apply": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "terraform apply"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "terraform-init",
+            "projects": "self"
+          }
+        ]
+      },
+      "build-infra": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "echo 'Infrastructure Deployed!'"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "terraform-apply",
+            "projects": "self"
+          }
+        ]
+      }
+    }
+  }

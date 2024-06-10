@@ -1,5 +1,4 @@
 {
-    "projectName": "pipeline-demo",
     "targets": {
       "run-asdf-install": {
         "executor": "nx:run-commands",
@@ -7,13 +6,7 @@
           "commands": [
             "asdf install"
           ]
-        },
-        "dependsOn": [
-          {
-            "target": "install-asdf",
-            "projects": "self"
-          }
-        ]
+        }
       },
       "build-infrastructure": {
         "executor": "nx:run-commands",
