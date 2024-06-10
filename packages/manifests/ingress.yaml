@@ -4,7 +4,7 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/certificate-arn: { OutputArn }
-    external-dns.alpha.kubernetes.io/hostname: { app.myZone }
+    external-dns.alpha.kubernetes.io/hostname: app.{ myZone }
   name: my-app
 spec:
   ingressClassName: alb

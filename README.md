@@ -8,12 +8,14 @@ tools used
 
 infrastructure deployed
 
-what i'd do with more time: something else for manifests, stuff from ntoes
+what i'd do with more time: something else for manifests, stuff from notes, deploy proper image tags, changesets
 
 ## Todos
 
+- Does the cluster check for "latest" image tag? How often? 
 - Linting
 - Apply manifests with Terraform? 
+- Add a CI health check for pull requests
 - Handle multiple environments, "configs" app directory, etc. 
 
 ## First Time Setup
@@ -27,6 +29,7 @@ what i'd do with more time: something else for manifests, stuff from ntoes
    - Access keys for a "CI" AWS user with wide permissions (#TODO: Add policy needed)
 - A *nix machine with Docker for Desktop or Rancher installed, if running locally
 - Github Actions enabled on the Github repo 
+- ASDF installed. Follow the instructions on the [ASDF GitHub page](https://github.com/asdf-vm/asdf) to install it.
 
 Follow these steps to set up the project for the first time:
 
@@ -41,15 +44,16 @@ Create a prereqs section
 
 ## First Time Setup
 
-### Github Actions / Local Shared Steps
 
 1. **Clone the repository**
 
    Use your preferred method to clone the repository to your local machine.
+2. Run `asdf install`.
 2. Update [the terraform.tf backend configuration](./packages/infrastructure/terraform.tf#L6) to use your S3 bucket.
 3. Update [the aws_route53_zone data block](./packages/infrastructure/ingress.tf#L101) and the [externalDNS hostname configuration](./packages/manifests/ingress.yaml#L7) to use your Route53 zone.
 4. Update the [eks_admins_iam_group group_users array](./packages/infrastructure/main.tf#L206) to include your CI user's username, or simply comment out the line if you don't intend to use Github Actions. 
-5. Replace [{ecrRepository}](./packages/app/project.json#L10) with your ECR repository. 
+5. Replace [{ecrRepository}](./packages/app/project.json#L10) with your ECR repository name, and [{ecrRepoURL}](./packages/manifests/deployment.yaml#L17) with the full public URL of the ECR repository. 
+6. Commit and push your changes to the main branch.
 
 
 ### Github Actions Execution
