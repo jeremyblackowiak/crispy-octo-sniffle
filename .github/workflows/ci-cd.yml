@@ -13,24 +13,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Install asdf & tools
+      uses: asdf-vm/actions/install@v3
+
     - name: Build Docker image
-      run: docker build -t my-app:latest ./app
+      run: ./nx build app
 
-    - name: Push Docker image
-      run: |
-        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        docker tag my-app:latest ${{ secrets.DOCKER_USERNAME }}/my-app:latest
-        docker push ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+    - name: Publish Docker image
+      run: ./nx publish app
 
-    - name: Set up kubectl
-      run: |
-        # Set up kubectl...
-
-    - name: Apply Kubernetes deployment and service
-      run: |
-        kubectl apply -f k8s/deployment.yaml
-        kubectl apply -f k8s/service.yaml
-
-    - name: Update Route53 and TLS
-      run: |
-        # Update Route53 and TLS...
+    - name: Apply updated manifests
+      run: ./nx apply-all manifests

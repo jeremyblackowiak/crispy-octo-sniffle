@@ -9,6 +9,9 @@ Follow these steps to set up the project for the first time:
 0. Create an S3 Bucket for State
 00. Create myZone 
 You'll need Docker
+If you want to deploy Infra locally
+Setting AWS keys
+Cluster name needs to be put into manifests commands.
 
 Create a prereqs section
 
