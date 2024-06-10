@@ -1,0 +1,28 @@
+{
+    "projectName": "pipeline-demo",
+    "targets": {
+      "run-asdf-install": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "asdf install"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "install-asdf",
+            "projects": "self"
+          }
+        ]
+      },
+      "build-infrastructure": {
+        "executor": "nx:run-commands",
+        "dependsOn": [
+          {
+            "target": "terraform-init",
+            "projects": "infrastructure"
+          }
+        ]
+      }
+    }
+  }

@@ -156,3 +156,9 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+
+
+.nx/cache
+.nx/workspace-data
+.nx/installation

@@ -1,0 +1,47 @@
+{
+    "projectName": "infrastructure",
+    "targets": {
+      "terraform-init": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "terraform init"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "run-asdf-install",
+            "projects": "pipeline-demo"
+          }
+        ]
+      },
+      "terraform-apply": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "terraform apply"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "terraform-init",
+            "projects": "self"
+          }
+        ]
+      },
+      "build-infra": {
+        "executor": "nx:run-commands",
+        "options": {
+          "commands": [
+            "echo 'Infrastructure Deployed!'"
+          ]
+        },
+        "dependsOn": [
+          {
+            "target": "terraform-apply",
+            "projects": "self"
+          }
+        ]
+      }
+    }
+  }
