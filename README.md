@@ -13,8 +13,7 @@ The tools used are
 - Terraform: I used Terraform to declare VPC, EKS, IAM, and AWS Load Balancer Controller/ExternalDNS deployments infrastructure.
 - EKS: Rolling your own Kubernetes cluster is its own task, but EKS is a lot more turnkey!
 - Github Actions: Everyone's favorite CI/CD platform! I created a `workflow_dispatch` conditioned infrastructure.yaml workflow for ad-hoc deployment of the infrastructure, and a cicd.yaml workflow that deploys app updates to the cluster when a pull request is merged into the main branch. 
-
-
+- Github Copilot: I used Copilot as a kind of assistant search engine for first leads on how to declare certain infrastructure resources with Terraform. I think it probably saved me a ton of time crawling through documentation for Terraform and Kubernetes configuration, which I'm still acquainting myself with. 
 
 ### Things I'm Still Figuring Out
 
@@ -27,6 +26,7 @@ The tools used are
 - Some tooling for bootstrapping the necessary user creation, s3 bucket creation, zone creation, etc. 
 - Parameterize the Terraform, invoke as a module; consume and use app/configs values to support multiple environments; properly increment the app image tag for releasing, that kind of thing.
 - Add a CI health check job for pull requests
+- Add linting, prettier features. 
 
 
 ## Prerequisites
