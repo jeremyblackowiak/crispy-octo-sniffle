@@ -2,25 +2,34 @@
 
 Welcome to `pipeline-demo`!
 
-overview
+## Overview
 
-tools used
+This project is meant to demonstrate an example web app deployment pipeline, including the deployment of the compute infrastructure to run it. 
 
-infrastructure deployed
+The tools used are
 
-what i'd do with more time: something else for manifests, stuff from notes, deploy proper image tags, changesets
-
-## Todos
-
-- Does the cluster check for "latest" image tag? How often? 
-- Linting
-- Apply manifests with Terraform? 
-- Add a CI health check for pull requests
-- Handle multiple environments, "configs" app directory, etc. 
+- ASDF: Toolchain installation management. 
+- NX of nx.dev: This is a monorepo orchestration tool that is typically used in node repositories, but can be used in others. I use it here to orchestrate command dependencies across the project to simplify the necessary inputs (either by local user or by CI) to get the operations done. 
+- Terraform: I used Terraform to declare VPC, EKS, IAM, and AWS Load Balancer Controller/ExternalDNS deployments infrastructure.
+- EKS: Rolling your own Kubernetes cluster is its own task, but EKS is a lot more turnkey!
+- Github Actions: Everyone's favorite CI/CD platform! I created a `workflow_dispatch` conditioned infrastructure.yaml workflow for ad-hoc deployment of the infrastructure, and a cicd.yaml workflow that deploys app updates to the cluster when a pull request is merged into the main branch. 
 
 
 
-### Prerequisites
+### Things I'm Still Figuring Out
+
+- Authentication with Kubernetes: I haven't worked with Kubernetes clusters in a while (mostly use ECS), and I hit several snags. I had to use `--insecure-skip-tls-verify` with kubectl on newly spawned EKS clusters in order to interact. Still don't know what's going on there. 
+- AWS Load Balancer Controller and ExternalDNS: These declarations in Terraform and the related annotations in the manifests should be directionally correct if I'm understanding the documentation right, but my struggles with auth meant I didn't get them fully working. 
+- A good tool for templating, versioning, and applying app manifests. I believe Helm is part of the equation, but not sure what the best in class solutions are yet. I considered just applying these manifests with Terraform, but I didn't want to lock in too hard! 
+
+### What I'd Do With More Time
+
+- Some tooling for bootstrapping the necessary user creation, s3 bucket creation, zone creation, etc. 
+- Parameterize the Terraform, invoke as a module; consume and use app/configs values to support multiple environments; properly increment the app image tag for releasing, that kind of thing.
+- Add a CI health check job for pull requests
+
+
+## Prerequisites
 
 - An AWS account
    - A Route53 zone to use for DNS record creation
@@ -74,4 +83,9 @@ Follow these steps for regular use of the project:
 2. Merge the pull request into the `main` branch.
 3. The CI-CD workflow will build the app container, publish it to ECR, then apply the manifests to the EKS cluster.
 4. Access the app at https://app.{myZone}
+
+### Local App Deployment
+
+1. From the root of the repository, run `./nx local-deploy app`. 
+2. Access the app at https://app.{myZone}
 
