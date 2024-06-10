@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: my-app
-        image: 851725465050.dkr.ecr.us-east-1.amazonaws.com/hello-repository:latest
+        image: ecrRepoURL:hello-world-app:latest
         ports:
         - containerPort: 80
