@@ -1,78 +1,71 @@
 {
-    "projectName": "app",
-    "root": "packages/app",
-    "targets": {
-      "docker-login": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/app",
-          "commands": [
-            "export AWS_ACCOUNT=$(aws sts get-caller-identity --query Account --output text) && aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/{ecrRepository}"
-          ]
-        }
-      },
-      "prepare-for-build": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/app",
-          "commands": [
-            "echo 'Here you might run some intermediate build steps, like building dependencies.'"
-          ]
-        }
-      },
-      "build": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/app",
-          "commands": [
-            "pwd",
-            "docker build -t hello-world-app ."
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "prepare-for-build",
-            "projects": "self"
-          }
-        ]
-      },
-      "publish": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/app",
-          "commands": [
-            "docker push hello-world-app"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "build",
-            "projects": "self"
-          },
-          {
-            "target": "docker-login",
-            "projects": "self"
-          }
-        ]
-      },
-      "local-deploy": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/app",
-          "commands": [
-            "echo 'deploy attempt complete'"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "publish",
-            "projects": "self"
-          },
-          {
-            "target": "apply-all",
-            "projects": "manifests"
-          }
+  "projectName": "app",
+  "root": "packages/app",
+  "targets": {
+    "docker-login": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/app",
+        "commands": [
+          "export AWS_ACCOUNT=$(aws sts get-caller-identity --query Account --output text) && aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT}.dkr.ecr.us-east-1.amazonaws.com/{ecrRepository}"
         ]
       }
+    },
+    "prepare-for-build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/app",
+        "commands": [
+          "echo 'Here you might run some intermediate build steps, like building dependencies.'"
+        ]
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/app",
+        "commands": ["pwd", "docker build -t hello-world-app ."]
+      },
+      "dependsOn": [
+        {
+          "target": "prepare-for-build",
+          "projects": "self"
+        }
+      ]
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/app",
+        "commands": ["docker push hello-world-app"]
+      },
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "self"
+        },
+        {
+          "target": "docker-login",
+          "projects": "self"
+        }
+      ]
+    },
+    "local-deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/app",
+        "commands": ["echo 'deploy attempt complete'"]
+      },
+      "dependsOn": [
+        {
+          "target": "publish",
+          "projects": "self"
+        },
+        {
+          "target": "apply-dev",
+          "projects": "manifests"
+        }
+      ]
     }
   }
+}

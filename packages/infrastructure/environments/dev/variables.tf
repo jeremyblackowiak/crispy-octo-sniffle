@@ -28,3 +28,8 @@ variable "additional_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "domain_name" {
+  description = "Route53 zone name"
+  type        = string
+}

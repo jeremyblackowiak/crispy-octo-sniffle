@@ -1,68 +1,87 @@
 {
-    "projectName": "infrastructure",
-    "targets": {
-      "terraform-init": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/infrastructure",
-          "commands": [
-            "terraform init"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "run-asdf-install",
-            "projects": "pipeline-demo"
+  "projectName": "infrastructure",
+  "targets": {
+    "terraform-init": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/infrastructure/environments/{args.env}",
+        "commands": ["terraform init"]
+      },
+      "dependsOn": [
+        {
+          "target": "run-asdf-install",
+          "projects": "pipeline-demo"
+        }
+      ]
+    },
+    "terraform-plan": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/infrastructure/environments/{args.env}",
+        "commands": ["terraform plan"]
+      },
+      "dependsOn": [
+        {
+          "target": "terraform-init",
+          "projects": "self",
+          "args": {
+            "env": "{args.env}"
           }
+        }
+      ]
+    },
+    "terraform-apply": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/infrastructure/environments/{args.env}",
+        "commands": ["terraform apply {args.auto-approve}"]
+      },
+      "dependsOn": [
+        {
+          "target": "terraform-init",
+          "projects": "self",
+          "args": {
+            "env": "{args.env}"
+          }
+        }
+      ]
+    },
+    "build-infra": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/infrastructure/environments/{args.env}",
+        "commands": [
+          "echo 'Infrastructure Deployed for {args.env} environment!'"
         ]
       },
-      "terraform-apply": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/infrastructure",
-          "commands": [
-            "terraform apply {args.auto-approve}"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "terraform-init",
-            "projects": "self"
+      "dependsOn": [
+        {
+          "target": "terraform-apply",
+          "projects": "self",
+          "args": {
+            "env": "{args.env}"
           }
+        }
+      ]
+    },
+    "build-infra-ci": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/infrastructure/environments/{args.env}",
+        "commands": [
+          "echo 'Infrastructure Deployed for {args.env} environment!'"
         ]
       },
-      "build-infra": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/infrastructure",
-          "commands": [
-            "echo 'Infrastructure Deployed!'"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "terraform-apply",
-            "projects": "self"
-          }
-        ]
-      },
-      "build-infra-ci": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/infrastructure",
-          "commands": [
-            "echo 'Infrastructure Deployed!'"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "terraform-apply",
-            "args": {
-              "auto-approve": "-auto-approve"
-            },
-            "projects": "self"
-          }
-        ]
-      }
+      "dependsOn": [
+        {
+          "target": "terraform-apply",
+          "args": {
+            "env": "{args.env}",
+            "auto-approve": "-auto-approve"
+          },
+          "projects": "self"
+        }
+      ]
     }
   }
+}

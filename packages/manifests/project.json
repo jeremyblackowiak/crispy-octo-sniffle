@@ -1,82 +1,40 @@
 {
-    "projectName": "manifests",
-    "targets": {
-      "update-kubeconfig-context": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/manifests",
-          "commands": [
-            "aws eks update-kubeconfig --region us-east-1 --{myCluster}"
-          ]
-        }
-      },
-      "apply-deployment": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/infrastructure",
-          "commands": [
-            "kubectl apply -f deployment.yaml"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "update-kubeconfig-context",
-            "projects": "self"
-          }
-        ]
-      },
-      "apply-service": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/manifests",
-          "commands": [
-            "kubectl apply -f service.yaml"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "update-kubeconfig-context",
-            "projects": "self"
-          }
-        ]
-      },
-      "apply-ingress": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/manifests",
-          "commands": [
-            "kubectl apply -f ingress.yaml"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "update-kubeconfig-context",
-            "projects": "self"
-          }
-        ]
-      },
-      "apply-all": {
-        "executor": "nx:run-commands",
-        "options": {
-          "cwd": "packages/manifests",
-          "commands": [
-            "echo 'Applied all manifests'"
-          ]
-        },
-        "dependsOn": [
-          {
-            "target": "apply-deployment",
-            "projects": "self"
-          },
-          {
-            "target": "apply-service",
-            "projects": "self"
-          },
-          {
-            "target": "apply-ingress",
-            "projects": "self"
-          }
+  "projectName": "manifests",
+  "targets": {
+    "update-kubeconfig-context": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/manifests",
+        "commands": [
+          "aws eks update-kubeconfig --region us-east-1 --{myCluster}"
         ]
       }
+    },
+    "apply-dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/manifests",
+        "commands": ["kubectl apply -k base/environments/dev"]
+      },
+      "dependsOn": [
+        {
+          "target": "update-kubeconfig-context",
+          "projects": "self"
+        }
+      ]
+    },
+    "apply-prod": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "packages/manifests",
+        "commands": ["kubectl apply -k base/environments/prod"]
+      },
+      "dependsOn": [
+        {
+          "target": "update-kubeconfig-context",
+          "projects": "self"
+        }
+      ]
     }
   }
+}

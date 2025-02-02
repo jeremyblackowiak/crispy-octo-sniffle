@@ -1,6 +1,6 @@
 locals {
   cluster_name = "${var.cluster_name_prefix}-${random_string.suffix.result}"
-  
+
   tags = merge({
     Environment = var.environment
     Owner       = "jeremy"
@@ -28,17 +28,17 @@ module "vpc" {
   private_subnets = [for k, v in var.azs : cidrsubnet(var.vpc_cidr, 4, k)]
   public_subnets  = [for k, v in var.azs : cidrsubnet(var.vpc_cidr, 4, k + 4)]
 
-  enable_nat_gateway     = true
-  single_nat_gateway     = true
+  enable_nat_gateway = true
+  single_nat_gateway = true
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
-    "type" = "public"
+    "type"                   = "public"
   }
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
-    "type" = "internal"
+    "type"                            = "internal"
   }
 
   tags = local.tags
@@ -46,37 +46,37 @@ module "vpc" {
 
 // A too-open SG for testing purposes
 resource "aws_security_group" "eks" {
-    name        = "eks sg"
-    description = "Allow traffic"
-    vpc_id      = module.vpc.vpc_id
+  name        = "eks sg"
+  description = "Allow traffic"
+  vpc_id      = module.vpc.vpc_id
 
-    ingress {
-      description      = "everything for testing purposes"
-      from_port        = 0
-      to_port          = 0
-      protocol         = "-1"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
-    }
-
-    egress {
-      from_port        = 0
-      to_port          = 0
-      protocol         = "-1"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
-    }
-
-    tags = {
-      "kubernetes.io/cluster/${local.cluster_name}": "owned"
-    }
+  ingress {
+    description      = "everything for testing purposes"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
   }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    "kubernetes.io/cluster/${local.cluster_name}" : "owned"
+  }
+}
 
 // The EKS cluster
 module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
-  depends_on = [ module.vpc ]
+  source          = "terraform-aws-modules/eks/aws"
+  version         = "~> 20.0"
+  depends_on      = [module.vpc]
   cluster_name    = local.cluster_name
   cluster_version = "1.29"
 
@@ -84,9 +84,9 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   cluster_endpoint_public_access           = true
-  cluster_endpoint_private_access = true
+  cluster_endpoint_private_access          = true
   enable_cluster_creator_admin_permissions = true
-  cluster_additional_security_group_ids = [aws_security_group.eks.id]
+  cluster_additional_security_group_ids    = [aws_security_group.eks.id]
 
   enable_irsa = true
 

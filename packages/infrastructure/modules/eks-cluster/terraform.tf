@@ -31,11 +31,11 @@ terraform {
     }
 
     helm = {
-      source = "hashicorp/helm"
+      source  = "hashicorp/helm"
       version = "> 2.9.0"
     }
 
-  required_version = "~> 1.3"
+    required_version = "~> 1.3"
   }
 }
 

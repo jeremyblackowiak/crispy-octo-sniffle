@@ -13,30 +13,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Install asdf & tools
-      uses: asdf-vm/actions/install@v3
-    
-    - name: Authenticate with AWS
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+      - name: Install asdf & tools
+        uses: asdf-vm/actions/install@v3
 
-    - name: Build Docker image
-      run: ./nx build app
+      - name: Authenticate with AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-    - name: Publish Docker image
-      run: ./nx publish app
+      - name: Build Docker image
+        run: ./nx build app
 
-    - name: Apply updated manifests
-      run: ./nx apply-all manifests
+      - name: Publish Docker image
+        run: ./nx publish app
 
-    - name: Wait for 2 minutes for the DNS to propagate
-      run: sleep 120
+      - name: Apply updated manifests
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            ./nx apply-prod manifests
+          else
+            ./nx apply-dev manifests
+          fi
 
-    - name: Check for success
-      run: curl -f https://app.myZone
+      - name: Wait for 2 minutes for the DNS to propagate
+        run: sleep 120
+
+      - name: Check for success
+        run: curl -f https://app.myZone
