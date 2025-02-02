@@ -1,11 +1,11 @@
 name: CI/CD
 
-on:
-  pull_request_target:
-    types:
-      - closed
-    branches:
-      - main
+# on:
+#   pull_request_target:
+#     types:
+#       - closed
+#     branches:
+#       - main
 
 jobs:
   build:
