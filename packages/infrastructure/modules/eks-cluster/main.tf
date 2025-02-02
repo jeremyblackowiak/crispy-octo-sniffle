@@ -1,22 +1,16 @@
-# Copyright (c) HashiCorp, Inc.
-# SPDX-License-Identifier: MPL-2.0
-
-// This file creates the VPC and EKS cluster resources
-
-provider "aws" {}
-
 locals {
-  cluster_name = "test-eks-${random_string.suffix.result}"
+  cluster_name = "${var.cluster_name_prefix}-${random_string.suffix.result}"
+  
+  tags = merge({
+    Environment = var.environment
+    Owner       = "jeremy"
+  }, var.additional_tags)
 }
 
-locals {
-  name = "jeremy-infra" ## You must use my name
-
-  tags = {
-    jeremy = "did-this" ## And my tag
-  }
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
 }
-
 resource "random_string" "suffix" {
   length  = 8
   special = false
@@ -27,12 +21,12 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
-  name = "main"
-  cidr = "10.0.0.0/16"
+  name = "${var.environment}-vpc"
+  cidr = var.vpc_cidr
 
-  azs             = ["us-east-1a", "us-east-1b"]
-  private_subnets = ["10.0.0.0/19", "10.0.32.0/19"]
-  public_subnets  = ["10.0.64.0/19", "10.0.96.0/19"]
+  azs             = var.azs
+  private_subnets = [for k, v in var.azs : cidrsubnet(var.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in var.azs : cidrsubnet(var.vpc_cidr, 4, k + 4)]
 
   enable_nat_gateway     = true
   single_nat_gateway     = true
@@ -47,9 +41,7 @@ module "vpc" {
     "type" = "internal"
   }
 
-  tags = {
-    Environment = "test"
-  }
+  tags = local.tags
 }
 
 // A too-open SG for testing purposes
